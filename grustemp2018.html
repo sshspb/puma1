@@ -1,0 +1,375 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="/css/grust.css">
+  <style>
+    .cssHeaderRow { background-color: #9e9e9e; }
+    .cssTableRow { background-color: #FAFBFC; }
+    .cssOddTableRow { background-color: #F7F8F9; }
+    .cssHoverTableRow { background: #ddd; }
+    .cssHeaderCell { color: #FFFFFF; font-size: 20px; padding: 10px !important; border: solid 1px #FFFFFF; }
+    .cssTableCell { font-size: 20px; padding: 10px !important; border: solid 1px #FFFFFF; text-align: center; }
+    .cssRowNumberCell { text-align: center; }
+  </style>
+<script type="text/javascript" src="/js/charts-loader.js"></script>
+<script type="text/javascript">
+  google.charts.load('current', {packages: ['corechart', 'line', 'table']});
+  google.charts.setOnLoadCallback(drawLineColors);
+/*
+  function drawTable() {
+    var url = window.location.href;
+    url =  url.substring(0, url.lastIndexOf('/') + 1) + 'lib/weather.json';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.send();
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState != 4) return;
+      if (xhr.status == 200) {
+
+        var etc = '- " -';
+        var date = new Date();
+        var mskDateOptions = {
+          timeZone: 'Europe/Moscow',
+          timeZoneName: 'short', // "short", "long"
+          weekday: 'short',      // "narrow", "short", "long"
+//          year: 'numeric',       // "numeric", "2-digit"
+          month: 'short',        // "numeric", "2-digit", "narrow", "short", "long"
+          day: 'numeric',        // "numeric", "2-digit"
+          hour: 'numeric',       // "numeric", "2-digit"
+          minute: 'numeric',     // "numeric", "2-digit"
+          second: 'numeric'      // "numeric", "2-digit"
+        };
+        var clvDateOptions = {
+          timeZone: 'America/New_York',
+          timeZoneName: 'short',
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric'
+        };
+        var mskString = date.toLocaleString("ru", mskDateOptions);
+        var clvString = date.toLocaleString("ru", clvDateOptions);
+
+        // output the result
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Ср.сут.');
+        data.addColumn('string', 'Городок');
+        data.addColumn('string', 'Темп');
+        data.addColumn('string', 'Давл');
+        data.addColumn('string', 'Влажн');
+        data.addColumn('string', 'Ветер');
+        data.addColumn('string', 'Сейчас');
+        var weathers = JSON.parse(xhr.responseText);
+        // for the last 24 hours there were 6 measurements
+        if (weathers.length > 6) {
+          weathers.splice(0, weathers.length - Math.min(6, weathers.length));
+        }
+        var average = [];
+        var weather = weathers[weathers.length - 1];
+        for (var row = 0; row < weather.length; row++) {
+          // average daily temperature
+          average[row] = 0;
+          for (var sample = 0; sample < weathers.length; sample++) {
+            average[row] += weathers[sample][row].main.temp;
+          }
+          average[row] /= weathers.length;
+          // current weather
+          var deg = weather[row].wind.deg;
+          var sides = ['С','ССВ','СВ','СВВ','В','ЮВВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЮЮЗ','З','СЗЗ','СЗ','ССЗ', '?'];
+          var sec = Math.floor((deg + 11.25) / 22.5);
+          sec = sec ? (sec > 15 ? 0 : sec) : 16; //if (sec > 15) sec = 0;
+          if (row == 1) continue; // skip Sinyavino
+          data.addRow([
+            (average[row] - 273.15).toFixed(0).toString(),
+            weather[row].column,
+            (weather[row].main.temp - 273.15).toFixed(0).toString(),
+            (weather[row].main.pressure * 0.75).toFixed(0).toString(), // 760 Torr / 1013.25 bar = 0.75006 Torr/bar
+            weather[row].main.humidity.toString(),
+            weather[row].wind.speed.toFixed(1).toString() + '  ' + sides[sec], row == 3 ? clvString : row == 0 ? mskString : etc
+          ]);
+        }
+        var cssClassNames = {
+          'headerRow': 'cssHeaderRow',
+          'tableRow': 'cssTableRow',
+          'oddTableRow': 'cssOddTableRow',
+          'selectedTableRow': 'cssSelectedTableRow',
+          'hoverTableRow': 'cssHoverTableRow',
+          'headerCell': 'cssHeaderCell',
+          'tableCell': 'cssTableCell',
+          'rowNumberCell': 'cssRowNumberCell'
+        };
+        var tableOptions = {
+          cssClassNames: cssClassNames
+        };
+        var table = new google.visualization.Table(document.getElementById('weather_table_div'));
+        table.draw(data, tableOptions);
+
+        setInterval(function(){ 
+          date.setMilliseconds(date.getMilliseconds() + 1000);
+          mskString = date.toLocaleString("ru", mskDateOptions);
+          clvString = date.toLocaleString("ru", clvDateOptions);
+          data.setValue(0, 6, mskString);
+          data.setValue(1, 6, etc);
+          data.setValue(2, 6, clvString);
+          table.draw(data, tableOptions);
+        }, 1000);
+
+      }
+    }
+  }
+*/
+
+  function drawLineColors() {
+
+//      drawTable();
+  
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Месяц');
+      data.addColumn('number', 'День');
+      data.addColumn('number', 'Котёл');
+      data.addColumn('number', 'Дом');
+      data.addColumn('number', 'Улица');
+      data.addRows([
+["Апрель 2018",29,,,7],
+["Апрель 2018",28,,11,6],
+["Апрель 2018",27,,,7],
+["Апрель 2018",26,,,7],
+["Апрель 2018",25,,,6],
+["Апрель 2018",24,,,3],
+["Апрель 2018",20,,9,7],
+["Апрель 2018",19,,,6],
+["Апрель 2018",18,,,8],
+["Апрель 2018",17,,10,9],
+["Апрель 2018",16,,10,9],
+["Апрель 2018",15,,10,6],
+["Апрель 2018",14,5,9,4],
+["Апрель 2018",13,5,9,1],
+["Апрель 2018",12,5,9,3],
+["Апрель 2018",11,5,10,3],
+["Апрель 2018",10,5,10,8],
+["Апрель 2018",9,5,9,10],
+["Апрель 2018",8,5,9,4],
+["Апрель 2018",7,5,8,3],
+["Апрель 2018",6,5,9,8],
+["Апрель 2018",5,5,8,6],
+["Апрель 2018",4,5,12,2],
+["Апрель 2018",3,5,7,2],
+["Апрель 2018",2,5,8,0],
+["Апрель 2018",1,5,8,-4],
+["Апрель 2018",0,10,8,-4],
+["Март 2018",31,10,8,-4],
+["Март 2018",30,10,7,-6],
+["Март 2018",29,10,7,-4],
+["Март 2018",28,10,7,-8],
+["Март 2018",27,10,7,-6],
+["Март 2018",26,10,7,-1],
+["Март 2018",25,14,7,1],
+["Март 2018",24,14,7,-8],
+["Март 2018",23,14,8,-1],
+["Март 2018",22,14,8,-5],
+["Март 2018",21,14,8,-5],
+["Март 2018",20,14,7,-1],
+["Март 2018",19,14,7,-1],
+["Март 2018",18,14,7,-5],
+["Март 2018",17,14,7,-8],
+["Март 2018",16,14,7,-7],
+["Март 2018",15,14,10,-1],
+["Март 2018",14,14,9,3],
+["Март 2018",13,14,8,1],
+["Март 2018",12,14,8,-1],
+["Март 2018",11,14,7,-2],
+["Март 2018",10,14,7,-3],
+["Март 2018",9,14,6,-8],
+["Март 2018",8,14,5,-10],
+["Март 2018",7,14,5,-10],
+["Март 2018",6,14,5,-11],
+["Март 2018",5,14,5,-10],
+["Март 2018",4,14,5,-12],
+["Март 2018",3,14,6,-11],
+["Март 2018",2,14,4,-17],
+["Март 2018",1,14,4,-18],
+["Март 2018",0,14,4,-17],
+["Февраль 2018",28,14,4,-17],
+["Февраль 2018",27,14,4,-17],
+["Февраль 2018",26,14,5,-12],
+["Февраль 2018",25,14,5,-14],
+["Февраль 2018",24,14,5,-16],
+["Февраль 2018",23,14,5,-15],
+["Февраль 2018",22,14,6,-14],
+["Февраль 2018",21,14,7,-12],
+["Февраль 2018",20,14,7,-10],
+["Февраль 2018",19,14,8,-6],
+["Февраль 2018",18,14,8,-4],
+["Февраль 2018",17,20,8,-7],
+["Февраль 2018",16,20,8,-9],
+["Февраль 2018",15,20,8,-11],
+["Февраль 2018",14,20,9,-9],
+["Февраль 2018",13,20,9,-5],
+["Февраль 2018",12,20,8,-4],
+["Февраль 2018",11,20,8,-5],
+["Февраль 2018",10,20,8,-6],
+["Февраль 2018",9,26,8,-7],
+["Февраль 2018",8,26,7,-5],
+["Февраль 2018",7,26,8,-6],
+["Февраль 2018",6,26,8,-10],
+["Февраль 2018",5,26,8,-10],
+["Февраль 2018",4,26,8,-8],
+["Февраль 2018",3,26,8,-5],
+["Февраль 2018",2,26,8,-1],
+["Февраль 2018",1,26,8,-7],
+["Февраль 2018",0,26,11,-1],
+["Январь 2018",29,26,11,-1],
+["Январь 2018",28,26,11,1],
+["Январь 2018",27,26,11,2],
+["Январь 2018",26,30,10,4],
+["Январь 2018",25,30,9,2],
+["Январь 2018",24,30,9,-5],
+["Январь 2018",23,30,8,-10],
+["Январь 2018",22,30,9,-10],
+["Январь 2018",21,30,9,-9],
+["Январь 2018",20,30,9,-6],
+["Январь 2018",19,30,9,-2],
+["Январь 2018",18,30,9,-6],
+["Январь 2018",17,30,8,-6],
+["Январь 2018",16,30,8,-8],
+["Январь 2018",15,30,9,-8],
+["Январь 2018",14,30,7,-4],
+["Январь 2018",13,30,6,-5],
+["Январь 2018",12,30,5,-3],
+["Январь 2018",11,30,4,-3],
+["Январь 2018",10,30,4,1],
+["Январь 2018",9,30,4,0],
+["Январь 2018",8,30,5,-2],
+["Январь 2018",7,30,6,-2],
+["Январь 2018",6,30,7,3],
+["Январь 2018",5,30,7,4],
+["Январь 2018",4,30,7,3],
+["Январь 2018",3,30,7,2],
+["Январь 2018",2,30,7,4],
+["Январь 2018",1,30,7,1],
+["Январь 2018",0,30,7,-2],
+["Декабрь 2017",31,30,7,-2],
+["Декабрь 2017",30,30,8,2],
+["Декабрь 2017",29,30,8,2],
+["Декабрь 2017",28,30,9,0],
+["Декабрь 2017",27,30,9,2],
+["Декабрь 2017",26,30,11,-1],
+["Декабрь 2017",25,30,14,-6],
+["Декабрь 2017",24,37,14,-4],
+["Декабрь 2017",23,37,13,-2],
+["Декабрь 2017",22,37,13,-2],
+["Декабрь 2017",21,37,12,-1],
+["Декабрь 2017",20,37,12,-4],
+["Декабрь 2017",19,37,12,-4],
+["Декабрь 2017",18,37,12,-3]
+      ]);
+      
+      var options = options1 = options2 = options3 = options4 = {
+        hAxis: {ticks: [0,5,10,15,20,25,30], minorGridlines: {count: 4} },
+        vAxis: {ticks: [-10,0,10,20], minorGridlines: {count: 1} }, 
+        fontSize: 20,
+        chartArea: {left:75, right:150}, 
+        titlePosition: 'out',
+        titleTextStyle: {color: '#707070' },
+        width: 960, 
+        height: 400, 
+        lineWidth: 4,
+        colors: [ '#FF7100', '#a52714', '#093871'] 
+        };
+
+        options.title = "Декабрь 2017";
+      var view = new google.visualization.DataView(data);
+      view.setRows(view.getFilteredRows([{column: 0, value: "Декабрь 2017"}]));
+      view.setColumns([1, 2, 3, 4]);
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+      chart.draw(view, options);
+     
+      options1.title = "Январь 2018";
+      var view1 = new google.visualization.DataView(data);
+      view1.setRows(view1.getFilteredRows([{column: 0, value: "Январь 2018"}]));
+      view1.setColumns([1, 2, 3, 4]);
+      var chart1 = new google.visualization.LineChart(document.getElementById('chart_div1'));
+      chart1.draw(view1, options1);
+
+      options2.title = "Февраль 2018";
+      var view2 = new google.visualization.DataView(data);
+      view2.setRows(view2.getFilteredRows([{column: 0, value: "Февраль 2018"}]));
+      view2.setColumns([1, 2, 3, 4]);
+      var chart2 = new google.visualization.LineChart(document.getElementById('chart_div2'));
+      chart2.draw(view2, options2);
+
+      options3.title = "Март 2018";
+      var view3 = new google.visualization.DataView(data);
+      view3.setRows(view3.getFilteredRows([{column: 0, value: "Март 2018"}]));
+      view3.setColumns([1, 2, 3, 4]);
+      var chart3 = new google.visualization.LineChart(document.getElementById('chart_div3'));
+      chart3.draw(view3, options3);
+
+      options4.title = "Апрель 2018";
+      options4.vAxis = {ticks: [-5,0,5,10], minorGridlines: {count: 4} };
+      var view4 = new google.visualization.DataView(data);
+      view4.setRows(view4.getFilteredRows([{column: 0, value: options4.title}]));
+      view4.setColumns([1, 2, 3, 4]);
+      var chart4 = new google.visualization.LineChart(document.getElementById('chart_div4'));
+      chart4.draw(view4, options4);
+      
+        var cssClassNames = {
+          'headerRow': 'cssHeaderRow',
+          'tableRow': 'cssTableRow',
+          'oddTableRow': 'cssOddTableRow',
+          'selectedTableRow': 'cssSelectedTableRow',
+          'hoverTableRow': 'cssHoverTableRow',
+          'headerCell': 'cssHeaderCell',
+          'tableCell': 'cssTableCell',
+          'rowNumberCell': 'cssRowNumberCell'
+        };
+        var tableOptions = {
+          width: '100%', 
+          height: '400px',
+          cssClassNames: cssClassNames
+        };
+      var viewTable= new google.visualization.DataView(data);
+      var table = new google.visualization.Table(document.getElementById('table_div'));
+      table.draw(viewTable, tableOptions);
+  }
+</script>
+
+</head>
+<body style="background-color: #d0d8e0;">
+  <div style="background-color: #FFF; width:960px; margin: auto; ">
+<!--
+    <figure style="width:100%; height:212px; margin:0 auto 10px; ">
+      <img src="/images/grustemp.jpg" alt="The head and torso of a landowner" 
+      title="The Landowner Inspects the Territory">
+    </figure>
+    <div id="weather_table_div" style="width:100%; padding-left:30px; background-color: #F7F8F9;" ></div> 
+-->
+    <div id="chart_div4"></div>
+    <div id="chart_div3"></div>
+    <div id="chart_div2"></div>
+    <div id="chart_div1"></div>
+    <div id="chart_div"></div>
+    <div id="table_div" style="padding: 0 20% 0 10%;"></div>
+    <footer style="background-color: #9e9e9e;">
+      <p style="text-align: center; color: #FFFFFF; font-size: 20px; padding: 5px;">Журавлиное</p>
+    </footer>
+  </div>
+</body>
+</html>
+
+<!--
+Time Changes in Cleveland Over the Years
+
+2018	вск 11 мар г. 02:00	EST → EDT	+1 hour (DST start)	UTC-4h  1520751600 UTC
+      вск 4 ноя г. 02:00	EDT → EST	-1 hour (DST end)	UTC-5h    1541311200 UTC
+2019	вск 10 мар г. 02:00	EST → EDT	+1 hour (DST start)	UTC-4h
+      вск 3 ноя г. 02:00	EDT → EST	-1 hour (DST end)	UTC-5h
+2020	вск 8 мар г. 02:00	EST → EDT	+1 hour (DST start)	UTC-4h
+      вск 1 ноя г. 02:00	EDT → EST	-1 hour (DST end)	UTC-5h
+2021	вск 14 мар г. 02:00	EST → EDT	+1 hour (DST start)	UTC-4h
+      вск 7 ноя г. 02:00	EDT → EST	-1 hour (DST end)	UTC-5h
+-->

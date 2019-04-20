@@ -1,0 +1,6 @@
+# Ignore some files and directories
+media
+node_modules
+package-lock.json
+draft
+esp8266

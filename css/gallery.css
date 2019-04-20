@@ -1,0 +1,26 @@
+.container {
+  clear: both;
+  margin-right: auto;
+  margin-left: auto;
+  width: auto;
+}
+
+.gallery__container {
+  padding: 0.01em 16px;
+}
+.gallery__list {
+  padding: 0;
+}
+.gallery__list__card {
+  float: left;
+  width: 160px;
+  height: 160px;
+  margin: 2px;
+  border: 1px solid grey;
+}
+.gallery__list__card:hover {
+  opacity: 0.5;
+  box-shadow: 1px 1px 4px 2px darkslategray;
+}
+.gallery__thumbnail {
+}

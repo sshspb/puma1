@@ -1,0 +1,194 @@
+<h1 id="esp8266lua">ESP8266 Lua</h1>
+<h2 id="lua">Lua</h2>
+<p>Краткий обзор интерпретируемого языка Lua здесь: <a href="http://tylerneylon.com/a/learn-lua/">http://tylerneylon.com/a/learn-lua/</a>,
+а полное руководство тут: <a href="http://lua.org.ru/contents_ru.html">http://lua.org.ru/contents_ru.html</a>.
+)</p>
+<h2 id="nodemcu">NodeMCU</h2>
+<p>Открытый бесплатный проект <a href="https://github.com/nodemcu/nodemcu-firmware">NodeMCU</a> — "прошивка" для микроконтроллера ESP8266 на основе скриптового языка Lua. </p>
+<p>NodeMCU модульная, что позволяет собрать прошивку только из требуемых модулей.
+Существует сайт, <a href="https://nodemcu-build.com">https://nodemcu-build.com</a>, на котором можно собрать NodeMCU с необходимыми модулями. 
+Исходные коды модулей можно найти здесь:<a href="https://github.com/nodemcu/nodemcu-firmware/tree/master/lua_modules">https://github.com/nodemcu/nodemcu-firmware/tree/master/lua_modules</a>.</p>
+<p>Подробная документация по NodeMCU тут: <a href="https://nodemcu.readthedocs.io/en/master/">https://nodemcu.readthedocs.io/en/master/</a></p>
+<p>Существует одноимённая отладочная плата NodeMCU Development board, или <a href="https://www.nodemcu.com/index_en.html">ESP8266 12-E NodeMCU Kit</a></p>
+<p><img src="images/NodeMCUv1.0-kit.jpg" alt="NodeMCU Development board appearance" /></p>
+<p><img src="images/NodeMCUv1.0-pinout.jpg" alt="NodeMCU Development board pinout" /></p>
+<p><img src="images/NodeMCUv1.0-GPIOs.jpg" alt="NodeMCU Development board GPIOs" /></p>
+<pre><code>0 GPIO16
+1 GPIO5    3 GPIO0    5 GPIO14    7 GPIO13     9 GPIO3    11 GPIO9     
+2 GPIO4    4 GPIO2    6 GPIO12    8 GPIO15    10 GPIO1    12 GPIO10 
+</code></pre>
+<h2 id="esptoolpy">esptool.py</h2>
+<p>Прошивку NodeMCU можно осуществить с помощью <a href="https://github.com/espressif/esptool">esptool</a> — а Python-based, open source, platform independent, utility to communicate with the ROM bootloader in Espressif ESP8266 &amp; ESP32 chips.</p>
+<pre><code>esptool.py --port /dev/ttyUSB0 write_flash 0x00000 The_NodeMCU_Firmware.bin
+</code></pre>
+<p>Welcome to the <a href="https://github.com/espressif/esptool/wiki">esptool wiki</a> !</p>
+<h2 id="esplorer">ESPlorer</h2>
+<p>Для написания и заливки Lua-скриптов есть утилита <a href="http://esp8266.ru/esplorer/">ESPlorer</a> — the essential multiplatforms tools for any ESP8266 developer from luatool author’s, required JAVA (Standard Edition - SE ver 7 and above) installed.</p>
+<ul>
+<li><a href="https://github.com/4refr0nt/ESPlorer">ESPlorer source code on GitHub</a></li>
+<li><a href="http://esp8266.ru/esplorer-latest/?f=ESPlorer.zip">Download ESPlorer.zip</a></li>
+</ul>
+<h2 id="initlua">init.lua</h2>
+<p>При ниличии скрипта с именем <code>init.lua</code> он стартует автоматически после запуска NodeMCU, а основной скрипт, например, <code>main.lua</code>, запускается из <code>init.lua</code>. При некоторых критических ошибках NodeMCU может перезагружаться. И самое страшное, что может случиться – это циклическая перезагрузка. Поэтому, при отладке кода, лучше запускать скрипты вручную, и только после того как все ошибки будут устранены, добавлять его в <code>init.lua</code>.</p>
+<p>Кроме того введём в <code>init.lua</code> задержку в на запуск основного скрипта. Таким образом, если мы допустим ошибку и NodeMCU уйдет в циклическую перезагрузку, после перезагрузки у нас будет 15 секунд для того чтобы удалить или исправить дефектный скрипт.</p>
+<pre><code>-- файл init.lua
+-- задержка, чтобы скрипт запускался не сразу, а по истечению 15 сек, 
+-- в случаи критической ошибки, чтобы исправить ее или удалить скрипт.
+local mytimer = tmr.create() -- Создаем таймер
+print("Wait... 15s"); 
+mytimer:register(15000, tmr.ALARM_SINGLE, function (t) 
+  -- таймер выполниться один раз через 15 сек 
+  print("Start");
+  dofile("example.lua") --Запуск нашего скрипта 
+  t:unregister()
+end)
+mytimer:start()  -- стартуем таймер
+</code></pre>
+<p>Смотри также <a href="https://nodemcu.readthedocs.io/en/latest/upload/#initlua">https://nodemcu.readthedocs.io/en/latest/upload/#initlua</a></p>
+<pre><code>================
+2019-01-23 from http://nodemcu-build.com/ to sshspb@yandex.ru 
+Your NodeMCU custom build finished successfully:
+- float: https://nodemcu-build.com/builds/nodemcu-master-9-modules-2019-01-23-19-50-34-float.bin
+- integer: https://nodemcu-build.com/builds/nodemcu-master-9-modules-2019-01-23-19-50-34-integer.bin
+This was built against the master branch and includes the following modules: 
+ds18b20, file, gpio, mqtt, net, node, ow, tmr, wifi. 
+================
+2019-02-08 from http://nodemcu-build.com/ to sshspb@yandex.ru 
+Your NodeMCU custom build finished successfully. You may now download the firmware:
+- float: https://nodemcu-build.com/builds/nodemcu-master-17-modules-2019-02-08-09-18-13-float.bin
+- integer: https://nodemcu-build.com/builds/nodemcu-master-17-modules-2019-02-08-09-18-13-integer.bin
+This was built against the master branch and includes the following modules: 
+bit, ds18b20, file, gpio, http, i2c, mdns, mqtt, net, node, ow, si7021, sjson, spi, tmr, uart, wifi.
+
+*** NEW FLASHING TOOL *** NEW FLASHING TOOL *** NEW FLASHING TOOL ***
+I invite you to try the new GUI tool https://github.com/marcelstoer/nodemcu-pyflasher
+
+Learn how to flash the firmware: https://nodemcu.readthedocs.io/en/master/en/flash/. 
+If you're upgrading from a previous version you should carefully study the "Upgrading Firmware" instructions on that page.
+================
+ESP-01 &amp; lua
+----------------
+$ esptool.py --port COM4 flash_id
+esptool.py v2.6
+Serial port COM4
+Connecting....
+Detecting chip type... ESP8266
+Chip is ESP8266EX
+Features: WiFi
+MAC: 84:f3:eb:7f:db:1e
+Uploading stub...
+Running stub...
+Stub running...
+Manufacturer: 85
+Device: 6014
+Detected flash size: 1MB
+Hard resetting via RTS pin...
+----------------
+$ esptool.py --port COM4 write_flash -fm qio 0x00000 nodemcu-master-9-modules-2019-01-23-19-50-34-float.bin
+esptool.py v2.6
+Serial port COM4
+Connecting....
+Detecting chip type... ESP8266
+Chip is ESP8266EX
+Features: WiFi
+MAC: 84:f3:eb:7f:db:1e
+Uploading stub...
+Running stub...
+Stub running...
+Configuring flash size...
+Auto-detected Flash size: 1MB
+Flash params set to 0x0020
+Compressed 450560 bytes to 291869...
+Wrote 450560 bytes (291869 compressed) at 0x00000000 in 30.5 seconds (effective 118.2 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...
+----------------
+run ESPlorer
+
+NodeMCU custom build by frightanic.com
+    branch: master
+    commit: 11592951b90707cdcb6d751876170bf4da82850d
+    SSL: false
+    modules: ds18b20,file,gpio,mqtt,net,node,ow,tmr,wifi
+ build created on 2019-01-23 19:49
+ powered by Lua 5.1.4 on SDK 2.2.1(6ab97e9)
+lua: cannot open init.lua
+&gt; 
+===========
+NodeMCU &amp; lua
+
+2019 01 18 первое подключение через PuTTY COM6 9600
+NodeMCU custom build by frightanic.com
+    branch: master
+    commit: c8037568571edb5c568c2f8231e4f8ce0683b883
+    SSL: false
+    modules: cjson,file,gpio,net,node,pwm,tmr,uart,wifi
+ build     built on: 2016-03-14 02:10
+ powered by Lua 5.1.4 on SDK 1.4.0
+----------------
+
+$ esptool.py --port COM6 write_flash -fm qio 0x00000 nodemcu-master-17-modules-2019-02-08-09-18-13-float.bin
+esptool.py v2.6
+Serial port COM6
+Connecting....
+Detecting chip type... ESP8266
+Chip is ESP8266EX
+Features: WiFi
+MAC: 80:7d:3a:74:fd:f2
+Uploading stub...
+Running stub...
+Stub running...
+Configuring flash size...
+Auto-detected Flash size: 4MB
+Flash params set to 0x0040
+Compressed 483328 bytes to 313000...
+Wrote 483328 bytes (313000 compressed) at 0x00000000 in 28.0 seconds (effective 138.1 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...
+----------------
+run ESPlorer
+
+NodeMCU custom build by frightanic.com
+    branch: master
+    commit: 11592951b90707cdcb6d751876170bf4da82850d
+    SSL: false
+    modules: bit,ds18b20,file,gpio,http,i2c,mdns,mqtt,net,node,ow,si7021,sjson,spi,tmr,uart,wifi
+ build created on 2019-02-08 09:17
+ powered by Lua 5.1.4 on SDK 2.2.1(6ab97e9)
+lua: cannot open init.lua
+&gt; 
+===========
+
+-- blink-delay.lua ------------------------------
+my_pin_nummber = 4  -- ESP8266 pin GPIO2
+gpio.mode(my_pin_nummber, gpio.OUTPUT)
+while 1 do
+  gpio.write(my_pin_nummber, gpio.HIGH)
+  tmr.delay(1000000)   -- wait 1,000,000 us = 1 second
+  gpio.write(my_pin_nummber, gpio.LOW)
+  tmr.delay(1000000)   -- wait 1,000,000 us = 1 second
+end
+
+-- blink-timer.lua ------------------------------
+pin = 4  -- ESP8266 pin GPIO2
+status = gpio.LOW
+duration = 1000  -- 1 second duration for timer
+gpio.mode(pin, gpio.OUTPUT)
+gpio.write(pin, status)
+local mytimer = tmr.create()
+mytimer:register(duration, tmr.ALARM_AUTO, 
+  function ()
+    if status == gpio.LOW then
+        status = gpio.HIGH
+    else
+        status = gpio.LOW
+    end
+    gpio.write(pin, status)
+  end
+)
+mytimer:start()
+</code></pre>
