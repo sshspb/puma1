@@ -4,4 +4,4 @@ node_modules
 package-lock.json
 draft
 esp8266
-lib/weather.json
+weather.json
