@@ -7,35 +7,35 @@ const fs = require('fs');
 const request = require('request');
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
+const config = require('../data/config');
+const path = require('path');
+//const localDB = '../data/weather.json';
   
-var url = 'http://api.openweathermap.org/data/2.5/group?id=482443,5152599&appid=6bf470f1b018d810c7b658222454cf5a';
+var url = config.openweathermapUrl;
 request(url, function (error, response, body) {
   if (!error && response && (response.statusCode == 200)) {
     var result = JSON.parse(body);
-    // в базу данных на mLab информацию по "Журавлиное"("Токсово")
-    MongoClient.connect('mongodb://<dbuser>:<dbpassword>@ds159254.mlab.com:59254/edu', function(err, client) {
+    // в базу данных на mLab.com информацию по "Журавлиное"("Токсово")
+    MongoClient.connect(config.mlabDB, function(err, client) {
       assert.equal(null, err);
       console.log("Connected successfully to server");
-      const db = client.db('edu');
+      const db = client.db(config.dbName);
       const collection = db.collection('toksovo');
       collection.insert([{ 
-        "t": result.list[0].main.temp,
-        "p": result.list[0].main.pressure,
-        "h": result.list[0].main.humidity,
-        "s": result.list[0].wind.speed,
-        "d": result.list[0].wind.deg,
-        "u": result.list[0].dt
+        "_id": result.list[0].dt,
+        "t": result.list[0].main.temp
       }], function(err, result) {
         assert.equal(err, null);
         client.close();
       });
     });
-    // последние 6 измерений с периодичностью 4 часа храним на локальной машине
+    // последние 6 измерений что с периодичностью 4 часа храним на локальной машине
     result.list[0].column = "Журавлиное";
     result.list[1].column = "Кливленд";
     var str = "";
     var weather = [];
-    var filename = './weather.json';
+    //var filename = localDB;
+    var filename = path.resolve(__dirname, "../", config.localDB)
     if (fs.existsSync(filename)) {
       str = fs.readFileSync(filename, 'utf8');
       weather = JSON.parse(str);

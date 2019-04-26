@@ -2,6 +2,6 @@
 media
 node_modules
 package-lock.json
+data
 draft
 esp8266
-weather.json

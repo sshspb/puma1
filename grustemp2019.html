@@ -14,13 +14,14 @@
     .cssRowNumberCell { text-align: center; }
   </style>
 <script type="text/javascript" src="/js/charts-loader.js"></script>
+<script type="text/javascript" src="/data/data-rows.js"></script>
 <script type="text/javascript">
   google.charts.load('current', {packages: ['corechart', 'line', 'table']});
   google.charts.setOnLoadCallback(drawLineColors);
 
   function drawTable() {
     var url = window.location.href;
-    url =  url.substring(0, url.lastIndexOf('/') + 1) + 'lib/weather.json';
+    url =  url.substring(0, url.lastIndexOf('/') + 1) + 'data/weather.json';
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.send();
@@ -123,15 +124,18 @@
   function drawLineColors() {
 
       drawTable();
-  
+      
       var data = new google.visualization.DataTable();
       data.addColumn('string', 'Месяц');
       data.addColumn('number', 'День');
       data.addColumn('number', 'Котёл');
       data.addColumn('number', 'Дом');
       data.addColumn('number', 'Улица');
+      data.addRows(dataRows);
+/*
       data.addRows([
-["Апрель 2019",25,0,15.2,15],
+["Апрель 2019",26,0,16,14],
+["Апрель 2019",25,0,15,14],
 ["Апрель 2019",24,0,14.2,14],
 ["Апрель 2019",23,0,13.5,10],
 ["Апрель 2019",22,0,13.5,8],
@@ -258,7 +262,7 @@
 ["Январь 2019",1,10,5,-2],
 ["Январь 2019",0,10,5,-2]
       ]);
-      
+*/
       var options1 = options2 = options3 = options4 = {
         hAxis: {ticks: [0,5,10,15,20,25,30], minorGridlines: {count: 4} },
         fontSize: 20,
