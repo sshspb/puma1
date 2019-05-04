@@ -2,6 +2,8 @@
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
+var MongoClient = require('mongodb').MongoClient;
+var config = require('./data/config');
 var showdown  = require('showdown');
 var converter = new showdown.Converter();
 
@@ -16,6 +18,14 @@ http.createServer(function (req, res) {
   } else if (locator.pathname === '/test') {
     var readout = fs.readFileSync('test.json');
     res.end(readout);
+  } else if (locator.pathname === '/mlab') {
+    MongoClient.connect(config.mlabDB, {useNewUrlParser: true}, function(err, client) {
+      var collection = client.db(config.dbName).collection('toksovo');
+      collection.find({}).sort([['_id', -1]]).limit(42).toArray(function(err, docs) {
+        res.end(JSON.stringify(docs));
+        client.close();
+      });
+    });
   } else {
     var filename = '.' + locator.pathname;
     if (filename.length > 0) {

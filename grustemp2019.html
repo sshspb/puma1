@@ -16,9 +16,126 @@
 <script type="text/javascript" src="/js/charts-loader.js"></script>
 <script type="text/javascript" src="/data/data-rows.js"></script>
 <script type="text/javascript">
-  google.charts.load('current', {packages: ['corechart', 'line', 'table']});
-  google.charts.setOnLoadCallback(drawLineColors);
 
+  var toksovo = [], temp = 5, wind = 0, humidity = 50, pressure = 760, pressureDayAgo = 760;
+    
+  var openweathermapUrl = "http://api.openweathermap.org/data/2.5/weather?id=482443&appid=6bf470f1b018d810c7b658222454cf5a";
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', openweathermapUrl, false);
+  xhr.send();
+  if (xhr.status != 200) {
+    alert( xhr.status + ': ' + xhr.statusText );
+  } else {
+    toksovo = JSON.parse(xhr.responseText);
+    temp = Number(toksovo.main.temp - 273.15).toFixed(1);
+    wind = Number(toksovo.wind.speed.toFixed(1));
+    humidity = Number(toksovo.main.humidity).toFixed(0);
+    pressure = Number(toksovo.main.pressure * 0.75).toFixed(0);
+
+    google.charts.load('current', {'packages':['corechart', 'gauge', 'table']});
+    google.charts.setOnLoadCallback(drawLineTemp);
+    google.charts.setOnLoadCallback(drawGaugeTemp);
+    google.charts.setOnLoadCallback(drawGaugeWind);
+    google.charts.setOnLoadCallback(drawGaugeHumidity);
+    google.charts.setOnLoadCallback(drawGaugePressure);
+    google.charts.setOnLoadCallback(drawLineColors);
+  }
+
+  function drawGaugeTemp() {
+    var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Темп', Number(temp)]]);
+    var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugetemp'));
+    var thome = dataRows[0][3];
+    var homeFrom = Number(temp) < thome ? Number(temp) : thome;
+    var homeTo = Number(temp) > thome ? Number(temp) : thome;
+    chart.draw(data, {
+      min:-15, max:25, width:240, height:240, minorTicks:5, 
+      redFrom: homeFrom, redTo: homeTo,
+      majorTicks:["-15","-10","-5","0","5","10","15","20","25"]
+    });
+  }
+
+  function drawGaugeWind() {
+    var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Ветер', Number(wind)]]);
+    var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugewind'));
+    chart.draw(data, {
+      min:0, max:20, width:240, height:240, minorTicks:5, 
+      majorTicks:["0","5","10","15","20"]
+    });
+  }
+
+  function drawGaugeHumidity() {
+    var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Влажн', Number(humidity)]]);
+    var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugehumidity'));
+    chart.draw(data, {
+      min:10, max:90, width:240, height:240, minorTicks:2, 
+      majorTicks:["10","20","30","40","50","60","70","80","90"]
+    });
+  }
+
+  function drawGaugePressure() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/data/weather.json', true);
+    xhr.send();
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState != 4) return;
+      if (xhr.status == 200) {
+        var weathers = JSON.parse(xhr.responseText);
+        pressureDayAgo = (weathers[0].list[0].main.pressure * 0.75).toFixed(0); 
+        
+        var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Давл', Number(pressure)]]);
+        var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugepressure'));
+        var options = {
+          min:730, max:780, width:240, height:240, minorTicks:2, 
+          majorTicks:["730","740","750","760","770","780"]
+        }
+        if (Number(pressure) > pressureDayAgo) {
+          options.greenFrom = pressureDayAgo;
+          options.greenTo = Number(pressure);
+        } else {
+          options.yellowFrom = Number(pressure);
+          options.yellowTo = pressureDayAgo;
+        }
+        chart.draw(data, options);
+      }
+    }
+  }
+
+  function drawLineTemp() {
+    var amlab = [];
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/mlab', false);
+    xhr.send();
+    if (xhr.status != 200) {
+      alert( xhr.status + ': ' + xhr.statusText );
+    } else {
+      amlab = JSON.parse(xhr.responseText);
+      var tnow = Number(Date.now() / 1000).toFixed(0);
+      var adata = [[{label: 'День', type: 'number'},{label: 'Улица', type: 'number'}]];
+      adata.push([0, temp]);
+      amlab.forEach(function(element) {
+        adata.push([
+          (element._id - tnow) / 86400, // 86400 = 60*60*24;
+          element.t - 273.15
+        ]); 
+      });
+      var data = google.visualization.arrayToDataTable(adata);
+      var options = {
+        hAxis: {ticks: [-7,-6,-5,-4,-3,-2,-1,0], minorGridlines: {count: 1} },
+        vAxis: {ticks: [0, 5, 10, 15], minorGridlines: {count: 4} },
+        chartArea: {left:75, right:150}, 
+        curveType: 'function',
+        colors: ['#093871'],
+        titleTextStyle: {color: '#707070' },
+        title: 'Последняя неделя',
+        fontSize: 20,
+        titlePosition: 'out',
+        legend: {position: 'right', textStyle: {color: '#093871', fontSize: 20}}  
+      };
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div_linetemp'));
+      chart.draw(data, options);
+    }
+  }
+/*
   function drawTable() {
     var url = window.location.href;
     url =  url.substring(0, url.lastIndexOf('/') + 1) + 'data/weather.json';
@@ -120,10 +237,11 @@
       }
     }
   }
+*/
 
   function drawLineColors() {
 
-      drawTable();
+//      drawTable();
       
       var data = new google.visualization.DataTable();
       data.addColumn('string', 'Месяц');
@@ -132,137 +250,6 @@
       data.addColumn('number', 'Дом');
       data.addColumn('number', 'Улица');
       data.addRows(dataRows);
-/*
-      data.addRows([
-["Апрель 2019",26,0,16,14],
-["Апрель 2019",25,0,15,14],
-["Апрель 2019",24,0,14.2,14],
-["Апрель 2019",23,0,13.5,10],
-["Апрель 2019",22,0,13.5,8],
-["Апрель 2019",21.1,0,14,7],
-["Апрель 2019",21,5,14,7],
-["Апрель 2019",20,5,14,8],
-["Апрель 2019",19,5,12,9],
-["Апрель 2019",18.9,0,11.9,9],
-["Апрель 2019",18,0,11,7],
-["Апрель 2019",17,0,10.5,6],
-["Апрель 2019",16,0,10.5,5],
-["Апрель 2019",15,0,11,4],
-["Апрель 2019",14,0,12,3],
-["Апрель 2019",13.1,0,13,2],
-["Апрель 2019",13,5,13,2],
-["Апрель 2019",12,5,12,1],
-["Апрель 2019",11,5,8,0],
-["Апрель 2019",10.9,0,8,0],
-["Апрель 2019",10,0,9,2],
-["Апрель 2019",9,0,10,4],
-["Апрель 2019",8,0,11.3,7],
-["Апрель 2019",7.1,0,13,7],
-["Апрель 2019",7,5,13,7],
-["Апрель 2019",6,5,9.3,7],
-["Апрель 2019",5.9,0,9.3,7],
-["Апрель 2019",5,0,9.2,7],
-["Апрель 2019",4,0,9.2,6],
-["Апрель 2019",3,0,9.5,4],
-["Апрель 2019",2,0,10,3],
-["Апрель 2019",1,0,11,2],
-["Апрель 2019",0,0,13,2],
-["Март 2019",31,5,13,2],
-["Март 2019",30,5,8.4,5],
-["Март 2019",29,5,8.1,5],
-["Март 2019",28,5,7.7,1],
-["Март 2019",27,5,7.6,-2],
-["Март 2019",26,5,8,0],
-["Март 2019",25,5,8.2,2],
-["Март 2019",24,5,8.1,2],
-["Март 2019",23,5,8,2],
-["Март 2019",22,5,7.8,3],
-["Март 2019",21,5,7.6,3],
-["Март 2019",20,5,7.4,1],
-["Март 2019",19,5,7.2,2],
-["Март 2019",18,5,7,3],
-["Март 2019",17,5,6.8,2],
-["Март 2019",16,5,6.6,1],
-["Март 2019",15,5,6.3,0],
-["Март 2019",14,5,6.1,-2],
-["Март 2019",13,5,6,-4],
-["Март 2019",12,5,6.1,-5],
-["Март 2019",11,5,6.2,-3],
-["Март 2019",10,5,6.3,1],
-["Март 2019",9,5,6,2],
-["Март 2019",8,5,5.5,4],
-["Март 2019",7,5,5,-5],
-["Март 2019",6,5,5.1,-9],
-["Март 2019",5,5,5.2,-4],
-["Март 2019",4,5,5.4,-6],
-["Март 2019",3,5,5.6,-4],
-["Март 2019",2,5,5.9,-6],
-["Март 2019",1,5,6.2,-3],
-["Март 2019",0,5,6.5,2],
-["Февраль 2019",29,5,6,-3],
-["Февраль 2019",28,5,6.5,2],
-["Февраль 2019",27,5,6.5,0],
-["Февраль 2019",26,5,6.4,2],
-["Февраль 2019",25,5,6,3],
-["Февраль 2019",24,5,5.6,1],
-["Февраль 2019",23,5,5.5,-5],
-["Февраль 2019",22,5,5.5,-7],
-["Февраль 2019",21,5,5.8,-5],
-["Февраль 2019",20,5,6,2],
-["Февраль 2019",19,5,6.5,-1],
-["Февраль 2019",18,5,6.8,-3],
-["Февраль 2019",17,5,7,2],
-["Февраль 2019",16,7,6.9,3],
-["Февраль 2019",15,7,6.9,3],
-["Февраль 2019",14,7,6.9,0],
-["Февраль 2019",13,7,6.9,-2],
-["Февраль 2019",12,7,6.6,1],
-["Февраль 2019",11,7,6,2],
-["Февраль 2019",10,7,5.5,2],
-["Февраль 2019",9,7,5.2,-0],
-["Февраль 2019",8,7,5,-3],
-["Февраль 2019",7,7,5,-8],
-["Февраль 2019",6,7,5,-3],
-["Февраль 2019",5,7,5,-3],
-["Февраль 2019",4,7,5,-0],
-["Февраль 2019",3,7,5,-3],
-["Февраль 2019",2,7,5,-3],
-["Февраль 2019",1,7,5,-6],
-["Февраль 2019",0,7,5,0],
-["Январь 2019",31,7,5,0],
-["Январь 2019",30,7,3,-4],
-["Январь 2019",29,7,2,-13],
-["Январь 2019",28,7,2,-16],
-["Январь 2019",27,7,2,-12],
-["Январь 2019",26,7,2,-14],
-["Январь 2019",25,7,3,-17],
-["Январь 2019",24,7,2,-10],
-["Январь 2019",23,7,2,-14],
-["Январь 2019",22,7,2,-18],
-["Январь 2019",21,7,3,-12],
-["Январь 2019",20,7,4,-5],
-["Январь 2019",19,7,4,-12],
-["Январь 2019",18,7,5,-6],
-["Январь 2019",17,7,5,-4],
-["Январь 2019",16,7,6,-4],
-["Январь 2019",15,7,6,-1],
-["Январь 2019",14,7,5,-2],
-["Январь 2019",13,10,4,-6],
-["Январь 2019",12,10,5,-1],
-["Январь 2019",11,10,4,-5],
-["Январь 2019",10,10,4,-5],
-["Январь 2019",9,10,5,-3],
-["Январь 2019",8,10,5,-3],
-["Январь 2019",7,10,4,-3],
-["Январь 2019",6,10,5,-8],
-["Январь 2019",5,10,5,-2],
-["Январь 2019",4,10,5,-2],
-["Январь 2019",3,10,5,-2],
-["Январь 2019",2,10,5,-2],
-["Январь 2019",1,10,5,-2],
-["Январь 2019",0,10,5,-2]
-      ]);
-*/
       var options1 = options2 = options3 = options4 = {
         hAxis: {ticks: [0,5,10,15,20,25,30], minorGridlines: {count: 4} },
         fontSize: 20,
@@ -333,11 +320,20 @@
 </head>
 <body style="background-color: #d0d8e0;">
   <div style="background-color: #FFF; width:960px; margin: auto; ">
+<!--
     <figure style="width:100%; height:212px; margin:0 auto 10px; ">
       <img src="/images/grustemp.jpg" alt="The head and torso of a landowner" 
       title="The Landowner Inspects the Territory">
     </figure>
     <div id="weather_table_div" style="width:100%; padding-left:30px; background-color: #F7F8F9;" ></div>
+-->
+    <div style="width: 960px; height: 240px;">
+    <div id="chart_div_gaugetemp" style="width: 240px; height: 240px; float:left;"></div>
+    <div id="chart_div_gaugewind" style="width: 240px; height: 240px; float:left;"></div>
+    <div id="chart_div_gaugehumidity" style="width: 240px; height: 240px; float:left;"></div>
+    <div id="chart_div_gaugepressure" style="width: 240px; height: 240px; float:left;"></div>
+    </div>
+    <div id="chart_div_linetemp" style="width: 960px; height: 400px;"></div>
     <div id="chart_div4"></div>
     <div id="chart_div3"></div>
     <div id="chart_div2"></div>

@@ -17,10 +17,10 @@
 <script type="text/javascript">
   google.charts.load('current', {packages: ['corechart', 'line', 'table']});
   google.charts.setOnLoadCallback(drawLineColors);
-/*
+
   function drawTable() {
     var url = window.location.href;
-    url =  url.substring(0, url.lastIndexOf('/') + 1) + 'lib/weather.json';
+    url =  url.substring(0, url.lastIndexOf('/') + 1) + 'data/weather.json';
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.send();
@@ -70,26 +70,25 @@
         }
         var average = [];
         var weather = weathers[weathers.length - 1];
-        for (var row = 0; row < weather.length; row++) {
+        for (var township = 0; township < weather.cnt; township++) {
           // average daily temperature
-          average[row] = 0;
+          average[township] = 0;
           for (var sample = 0; sample < weathers.length; sample++) {
-            average[row] += weathers[sample][row].main.temp;
+            average[township] += weathers[sample].list[township].main.temp;
           }
-          average[row] /= weathers.length;
+          average[township] /= weathers.length;
           // current weather
-          var deg = weather[row].wind.deg;
+          var deg = weather.list[township].wind.deg;
           var sides = ['С','ССВ','СВ','СВВ','В','ЮВВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЮЮЗ','З','СЗЗ','СЗ','ССЗ', '?'];
           var sec = Math.floor((deg + 11.25) / 22.5);
           sec = sec ? (sec > 15 ? 0 : sec) : 16; //if (sec > 15) sec = 0;
-          if (row == 1) continue; // skip Sinyavino
           data.addRow([
-            (average[row] - 273.15).toFixed(0).toString(),
-            weather[row].column,
-            (weather[row].main.temp - 273.15).toFixed(0).toString(),
-            (weather[row].main.pressure * 0.75).toFixed(0).toString(), // 760 Torr / 1013.25 bar = 0.75006 Torr/bar
-            weather[row].main.humidity.toString(),
-            weather[row].wind.speed.toFixed(1).toString() + '  ' + sides[sec], row == 3 ? clvString : row == 0 ? mskString : etc
+            (average[township] - 273.15).toFixed(0).toString(),
+            weather.list[township].column,
+            (weather.list[township].main.temp - 273.15).toFixed(0).toString(),
+            (weather.list[township].main.pressure * 0.75).toFixed(0).toString(), // 760 Torr / 1013.25 bar = 0.75006 Torr/bar
+            weather.list[township].main.humidity.toString(),
+            weather.list[township].wind.speed.toFixed(1).toString() + '  ' + sides[sec], township == 3 ? clvString : township == 0 ? mskString : etc
           ]);
         }
         var cssClassNames = {
@@ -113,19 +112,17 @@
           mskString = date.toLocaleString("ru", mskDateOptions);
           clvString = date.toLocaleString("ru", clvDateOptions);
           data.setValue(0, 6, mskString);
-          data.setValue(1, 6, etc);
-          data.setValue(2, 6, clvString);
+          data.setValue(1, 6, clvString);
           table.draw(data, tableOptions);
         }, 1000);
 
       }
     }
   }
-*/
 
   function drawLineColors() {
 
-//      drawTable();
+      drawTable();
   
       var data = new google.visualization.DataTable();
       data.addColumn('string', 'Месяц');
@@ -341,13 +338,11 @@
 </head>
 <body style="background-color: #d0d8e0;">
   <div style="background-color: #FFF; width:960px; margin: auto; ">
-<!--
     <figure style="width:100%; height:212px; margin:0 auto 10px; ">
       <img src="/images/grustemp.jpg" alt="The head and torso of a landowner" 
       title="The Landowner Inspects the Territory">
     </figure>
     <div id="weather_table_div" style="width:100%; padding-left:30px; background-color: #F7F8F9;" ></div> 
--->
     <div id="chart_div4"></div>
     <div id="chart_div3"></div>
     <div id="chart_div2"></div>

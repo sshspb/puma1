@@ -9,10 +9,8 @@ const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 const config = require('../data/config');
 const path = require('path');
-//const localDB = '../data/weather.json';
   
-var url = config.openweathermapUrl;
-request(url, function (error, response, body) {
+request(config.openweathermapUrl, function (error, response, body) {
   if (!error && response && (response.statusCode == 200)) {
     var result = JSON.parse(body);
     // в базу данных на mLab.com информацию по "Журавлиное"("Токсово")
