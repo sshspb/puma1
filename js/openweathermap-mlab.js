@@ -1,8 +1,22 @@
 /*
- * Запрос погоды в Toksovo, Cleveland 
+ * Запрос с сервиса openweathermap погоды в Toksovo, Cleveland и т.д.
+ * и запись в базу данных на сервис mlab и в локальный файл
+ *
  * const ids = ["482443","492712","580724","5152599"];
  * const columns = ["Журавлиное", "Синявино", "Арзамас", "Кливленд"];
-*/
+ *
+ * Запускается на выполнение планировщиком cron на FreeBSD 
+ * Планировшик cron каждые четыре часа запускает shell-скрипт /usr/home/shs/lib/temp.sh
+ * последний в  свою очередь выполняет в окружении node скрипт openweathermap-mlab.js
+ */
+//   $ cat /etc/crontab
+//   #minute hour    mday    month   wday    who     command
+//   28      */4     *       *       *       shs     /usr/home/shs/lib/temp.sh
+
+//   $ cat /usr/home/shs/lib/temp.sh
+//   cd /usr/home/shs/www/puma1/js/
+//   /usr/local/bin/node openweathermap-mlab.js
+
 const fs = require('fs');
 const request = require('request');
 const MongoClient = require('mongodb').MongoClient;
