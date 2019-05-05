@@ -21,7 +21,8 @@ request(config.openweathermapUrl, function (error, response, body) {
       const collection = db.collection('toksovo');
       collection.insert([{ 
         "_id": result.list[0].dt,
-        "t": result.list[0].main.temp
+        "t": result.list[0].main.temp,
+        "p": result.list[0].main.pressure
       }], function(err, result) {
         assert.equal(err, null);
         client.close();
