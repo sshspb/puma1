@@ -39,22 +39,16 @@
 <script type="text/javascript" src="/data/data-rows.js"></script>
 <script type="text/javascript">
 
-  var toksovo = [], 
-    temp = 5, 
-    tempAverage = 0, 
-    windSpeed = 0, 
-    windDeg = 0, 
-    windSector = 0, 
+  var temp = 5, tempAverage = 0, 
+    windSpeed = 0, windDeg = 0, windSector = 0, 
     nameSector = ['С','ССВ','СВ','СВВ','В','ЮВВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЮЮЗ','З','СЗЗ','СЗ','ССЗ', '?'],
-    humidity = 50, 
-    pressure = 760, 
-    pressureDayAgo = 760;
+    humidity = 50, pressure = 760, pressureDayAgo = 760;
     
   var xhr = new XMLHttpRequest();
   xhr.open('GET', openweathermapUrl, false); // openweathermapUrl defined in /data/data-rows.js
   xhr.send();
   if (xhr.status == 200) {
-    toksovo = JSON.parse(xhr.responseText);
+    var toksovo = JSON.parse(xhr.responseText);
     temp = Number((toksovo.main.temp - 273.15).toFixed(1));
     tempAverage = temp;
     windSpeed = Number(toksovo.wind.speed.toFixed(1));
@@ -63,16 +57,13 @@
     windSector = windSector ? (windSector > 15 ? 0 : windSector) : 16;
     humidity = toksovo.main.humidity;
     pressure = Number((toksovo.main.pressure * 0.75).toFixed(0));
+    pressureDayAgo = pressure;
     drawTitle();
 
     google.charts.load('current', {'packages':['corechart', 'gauge', 'table']});
     google.charts.setOnLoadCallback(drawTitle);
-    google.charts.setOnLoadCallback(drawLineTemp);
-    google.charts.setOnLoadCallback(drawGaugeTemp);
-    google.charts.setOnLoadCallback(drawGaugeWind);
-    google.charts.setOnLoadCallback(drawGaugeHumidity);
-    google.charts.setOnLoadCallback(drawGaugePressure);
-    google.charts.setOnLoadCallback(drawLineColors);
+    google.charts.setOnLoadCallback(drawLineWeek);
+    google.charts.setOnLoadCallback(drawLineMonths);
   }
   
   function drawTitle() {
@@ -116,40 +107,23 @@
   }
 
   function drawGaugePressure() {
-   /*
-    * Файл /data/weather.json содержит результаты 
-    * последних 6 запросов погоды, за последние сутки, 
-    * с сервиса openweathermap.
-    * Нам необходимо значение давления сутки тому назад.
-    */
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/data/weather.json', true);
-    xhr.send();
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState != 4) return;
-      if (xhr.status == 200) {
-        var weathers = JSON.parse(xhr.responseText);
-        pressureDayAgo = (weathers[0].list[0].main.pressure * 0.75).toFixed(0); 
-        
-        var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Давл', pressure]]);
-        var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugepressure'));
-        var options = {
-          min:730, max:780, width:240, height:240, minorTicks:2, 
-          majorTicks:["730","740","750","760","770","780"]
-        }
-        if (Number(pressure) > pressureDayAgo) {
-          options.greenFrom = pressureDayAgo;
-          options.greenTo = Number(pressure);
-        } else {
-          options.yellowFrom = Number(pressure);
-          options.yellowTo = pressureDayAgo;
-        }
-        chart.draw(data, options);
-      }
+    var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Давл', pressure]]);
+    var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugepressure'));
+    var options = {
+      min:730, max:780, width:240, height:240, minorTicks:2, 
+      majorTicks:["730","740","750","760","770","780"]
     }
+    if (Number(pressure) > pressureDayAgo) {
+      options.greenFrom = pressureDayAgo;
+      options.greenTo = Number(pressure);
+    } else {
+      options.yellowFrom = Number(pressure);
+      options.yellowTo = pressureDayAgo;
+    }
+    chart.draw(data, options);
   }
 
-  function drawLineTemp() {
+  function drawLineWeek() {
     /*
       по запросу XMLHttpRequest.open('GET', '/mlab', false) отсюда, со стороны клиента, 
       сервер server.js запросит из базы данных последние 42 записи и выдаст их клиенту:
@@ -175,21 +149,19 @@
       var minTemp = 0, maxTemp = 0;
       var timestampnow = Number(Date.now() / 1000).toFixed(0);
       var adata = [[{label: 'День', type: 'number'},{label: 'Улица', type: 'number'}]];
-      var nTempInDay = 1;
-      tempAverage = temp;
+      var nTempInDay = 0;
+      tempAverage = 0;
       adata.push([0, temp]);
-      amlab.forEach(function(element) {
-        var day = (element._id - timestampnow) / 86400; // 86400 = 60*60*24
-        var celsius = element.t - 273.15;
-        if (day > -1.0) { // средняя температура за последние сутки
-          tempAverage += celsius;
-          nTempInDay++;
-        }
+      for (var i = 0; i < amlab.length; i++) {
+        var day = (amlab[i]._id - timestampnow) / 86400; // 86400 = 60*60*24
+        var celsius = amlab[i].t - 273.15;
         adata.push([day, celsius]); 
         if (minTemp > celsius) minTemp = celsius;
         if (maxTemp < celsius) maxTemp = celsius;
-      });
-      tempAverage /= nTempInDay;
+        if (i < 6) { tempAverage += celsius; nTempInDay++; }
+        if (i == 5) { pressureDayAgo = amlab[i].p * 0.75; }
+      }
+      if (nTempInDay > 0) tempAverage /= nTempInDay;
       drawTitle();
       var majorTicks = [], iFrom = Math.round(minTemp/5), iTo = Math.round(maxTemp/5);
       for (var i = iFrom; i <= iTo; i++) majorTicks.push(5*i);
@@ -208,10 +180,14 @@
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_linetemp'));
       chart.draw(data, options);
+      drawGaugeTemp();
+      drawGaugeWind();
+      drawGaugeHumidity();
+      drawGaugePressure();
     }
   }
 
-  function drawLineColors() {
+  function drawLineMonths() {
       var data = new google.visualization.DataTable();
       data.addColumn('string', 'Месяц');
       data.addColumn('number', 'День');
